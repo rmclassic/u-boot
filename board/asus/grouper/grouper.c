@@ -15,7 +15,7 @@
 #include "pinmux-config-grouper.h"
 #include <i2c.h>
 
-#define PMU_I2C_ADDRESS		0x2D
+#define TPS65911_I2C_ADDRESS	0x2D
 #define MAX_I2C_RETRY		3
 
 #define TPS65911_LDO1		0x30
@@ -24,6 +24,10 @@
 #define DEVCTRL_PWR_OFF_MASK	0x80
 #define DEVCTRL_DEV_OFF_MASK	0x01
 #define DEVCTRL_DEV_ON_MASK	0x04
+
+#define MAX77663_I2C_ADDRESS	0x3C
+#define MAX77620_REG_ONOFFCNFG1	0x41
+#define MAX77620_ONOFFCNFG1_SFT_RST 0x40
 
 #ifdef CONFIG_CMD_POWEROFF
 #ifdef CONFIG_GROUPER_TPS65911
@@ -34,7 +38,7 @@ int do_poweroff(struct cmd_tbl *cmdtp,
 	uchar data_buffer[1];
 	int ret;
 
-	ret = i2c_get_chip_for_busnum(0, PMU_I2C_ADDRESS, 1, &dev);
+	ret = i2c_get_chip_for_busnum(0, TPS65911_I2C_ADDRESS, 1, &dev);
 	if (ret) {
 		debug("%s: Cannot find PMIC I2C chip\n", __func__);
 		return 0;
@@ -63,6 +67,37 @@ int do_poweroff(struct cmd_tbl *cmdtp,
 	return 1;
 }
 #endif /* CONFIG_GROUPER_TPS65911 */
+
+#ifdef CONFIG_GROUPER_MAX77663
+int do_poweroff(struct cmd_tbl *cmdtp,
+		       int flag, int argc, char *const argv[])
+{
+	struct udevice *dev;
+	uchar data_buffer[1];
+	int ret;
+
+	ret = i2c_get_chip_for_busnum(0, MAX77663_I2C_ADDRESS, 1, &dev);
+	if (ret) {
+		debug("%s: Cannot find PMIC I2C chip\n", __func__);
+		return 0;
+	}
+
+	ret = dm_i2c_read(dev, MAX77620_REG_ONOFFCNFG1, data_buffer, 1);
+	if (ret)
+		return ret;
+
+	data_buffer[0] |= MAX77620_ONOFFCNFG1_SFT_RST;
+
+	ret = dm_i2c_write(dev, MAX77620_REG_ONOFFCNFG1, data_buffer, 1);
+	if (ret)
+		return ret;
+
+	// wait some time and then print error
+	mdelay(5000);
+	printf("Failed to power off!!!\n");
+	return 1;
+}
+#endif /* CONFIG_GROUPER_MAX77663 */
 #endif /* CONFIG_CMD_POWEROFF */
 
 /*
@@ -92,7 +127,7 @@ void board_sdmmc_tps65911_voltage_init(void)
 	int ret;
 	int i;
 
-	ret = i2c_get_chip_for_busnum(0, PMU_I2C_ADDRESS, 1, &dev);
+	ret = i2c_get_chip_for_busnum(0, TPS65911_I2C_ADDRESS, 1, &dev);
 	if (ret) {
 		debug("%s: Cannot find PMIC I2C chip\n", __func__);
 		return;

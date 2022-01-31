@@ -294,13 +294,12 @@ static int tc358768_setup(struct udevice *dev)
 	/* get gpios */
 	ret = gpio_request_by_name(dev, "reset-gpios", 0,
 				   &uc_priv->reset, GPIOD_IS_OUT);
-	if (ret) {
+	if (ret && ret != -ENOENT) {
 		debug("%s: Could not decode reset-gpios (%d)\n", __func__, ret);
-		if (ret != -ENOENT)
-			return ret;
+		return ret;
 	}
 
-	return 0;
+	return ret;
 }
 
 static int tc358768_probe(struct udevice *dev)

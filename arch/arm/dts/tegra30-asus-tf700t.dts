@@ -39,6 +39,11 @@
 	lcd_ddc: i2c@7000c000 {
 		status = "okay";
 		clock-frequency = <100000>;
+
+		tc358768: dsi@7 {
+			compatible = "toshiba,tc358768";
+			reg = <0x7>;
+		};
 	};
 
 	i2c@7000d000 {
@@ -60,6 +65,14 @@
 			gpio-controller;
 
 			regulators {
+				vdd_1v8_vio: vio {
+					regulator-name = "vdd_1v8_gen";
+					regulator-min-microvolt = <1800000>;
+					regulator-max-microvolt = <1800000>;
+					regulator-always-on;
+					regulator-boot-on;
+				};
+
 				/* eMMC VDD */
 				vcore_emmc: ldo1 {
 					regulator-name = "vdd_emmc_core";

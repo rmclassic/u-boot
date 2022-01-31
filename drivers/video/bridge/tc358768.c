@@ -42,12 +42,53 @@ static int tc358768_attach(struct udevice *dev)
 	return 0;
 }
 
+static int tc358768_setup(struct udevice *dev)
+{
+	struct tc358768_priv *uc_priv = dev_get_uclass_priv(dev);
+	int ret;
+
+	/* get regulators */
+	ret = device_get_supply_regulator(dev, "vddc-supply", &uc_priv->vddc);
+	if (ret && ret != -ENOENT) {
+		debug("%s: vddc regulator error:%d\n", __func__, ret);
+		return ret;
+	}
+
+	ret = device_get_supply_regulator(dev, "vddmipi-supply", &uc_priv->vddmipi);
+	if (ret && ret != -ENOENT) {
+		debug("%s: vddmipi regulator error:%d\n", __func__, ret);
+		return ret;
+	}
+
+	ret = device_get_supply_regulator(dev, "vddio-supply", &uc_priv->vddio);
+	if (ret && ret != -ENOENT) {
+		debug("%s: vddio regulator error:%d\n", __func__, ret);
+		return ret;
+	}
+
+	/* get clk */
+//	uc_priv->refclk = devm_clk_get_optional(dev, "refclk");
+//	if (IS_ERR(uc_priv->refclk))
+//		debug("%s: Could not get refclk\n", __func__);
+
+	/* get gpios */
+	ret = gpio_request_by_name(dev, "reset-gpios", 1,
+				   &uc_priv->reset, GPIOD_IS_OUT);
+	if (ret) {
+		debug("%s: Could not decode reset-gpios (%d)\n", __func__, ret);
+		if (ret != -ENOENT)
+			return ret;
+	}
+
+	return 0;
+}
+
 static int tc358768_probe(struct udevice *dev)
 {
 	if (device_get_uclass_id(dev->parent) != UCLASS_I2C)
 		return -EPROTONOSUPPORT;
 
-	return 0;
+	return tc358768_setup(dev);
 }
 
 struct video_bridge_ops tc358768_ops = {

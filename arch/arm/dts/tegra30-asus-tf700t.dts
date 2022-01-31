@@ -148,5 +148,16 @@
 			gpio = <&gpio TEGRA_GPIO(H, 3) GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 		};
+
+		vdd_1v2_mipi: regulator@2 {
+			compatible = "regulator-fixed";
+			reg = <2>;
+			regulator-name = "tc358768_1v2_vdd";
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+			regulator-boot-on;
+			gpio = <&gpio TEGRA_GPIO(BB, 3) GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
 	};
 };

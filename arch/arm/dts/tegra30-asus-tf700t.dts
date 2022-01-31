@@ -9,6 +9,11 @@
 / {
 	model = "Asus Transformer Infinity TF700T";
 
+	aliases {
+		i2c0 = &pmic_i2c;
+		i2c1 = &lcd_ddc;
+	};
+
 	host1x@50000000 {
 		status = "okay";
 		dc@54200000 {
@@ -41,7 +46,7 @@
 		clock-frequency = <100000>;
 	};
 
-	i2c@7000d000 {
+	pmic_i2c: i2c@7000d000 {
 		status = "okay";
 		clock-frequency = <400000>;
 

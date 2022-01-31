@@ -39,11 +39,6 @@
 	lcd_ddc: i2c@7000c000 {
 		status = "okay";
 		clock-frequency = <100000>;
-
-		tc358768: dsi@7 {
-			compatible = "toshiba,tc358768";
-			reg = <0x7>;
-		};
 	};
 
 	i2c@7000d000 {

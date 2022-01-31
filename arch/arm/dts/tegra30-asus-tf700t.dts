@@ -9,6 +9,33 @@
 / {
 	model = "Asus Transformer Infinity TF700T";
 
+	host1x@50000000 {
+		status = "okay";
+		dc@54200000 {
+			status = "okay";
+			rgb {
+				status = "okay";
+
+				nvidia,panel = <&panel>;
+
+				display-timings {
+					timing@0 {
+						/* 1920x1200@60Hz */
+						clock-frequency = <154000000>;
+						hactive = <1920>;
+						vactive = <1200>;
+						hfront-porch = <48>;
+						hback-porch = <80>;
+						hsync-len = <32>;
+						vsync-len = <6>;
+						vfront-porch = <3>;
+						vback-porch = <26>;
+					};
+				};
+			};
+		};
+	};
+
 	i2c@7000d000 {
 		status = "okay";
 		clock-frequency = <400000>;

@@ -39,9 +39,7 @@ static int tc358768_set_backlight(struct udevice *dev, int percent)
 
 static int tc358768_attach(struct udevice *dev)
 {
-	debug("%s: %s\n", __func__, dev->name);
-
-	return video_bridge_set_active(dev, true);
+	return 0;
 }
 
 static int tc358768_probe(struct udevice *dev)

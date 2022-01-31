@@ -292,7 +292,7 @@ static int tc358768_setup(struct udevice *dev)
 //		debug("%s: Could not get refclk\n", __func__);
 
 	/* get gpios */
-	ret = gpio_request_by_name(dev, "reset-gpios", 1,
+	ret = gpio_request_by_name(dev, "reset-gpios", 0,
 				   &uc_priv->reset, GPIOD_IS_OUT);
 	if (ret) {
 		debug("%s: Could not decode reset-gpios (%d)\n", __func__, ret);

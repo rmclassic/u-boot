@@ -271,6 +271,7 @@ static int tegra_display_probe(const void *blob, struct tegra_lcd_priv *priv,
 {
 	struct disp_ctl_win window;
 	struct dc_ctlr *dc;
+	int ret;
 
 	priv->frame_buffer = (u32)default_lcd_base;
 

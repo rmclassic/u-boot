@@ -285,6 +285,19 @@ static int tegra_display_probe(const void *blob, struct tegra_lcd_priv *priv,
 			       144 * 1000000);
 	clock_start_periph_pll(PERIPH_ID_DISP1, CLOCK_ID_CGENERAL,
 			       600 * 1000000);
+
+	/*
+	 * Enable bridge if available after clock start and before
+	 * display is started
+	 */
+	if (priv->bridge) {
+		ret = video_bridge_attach(priv->bridge);
+		if (ret) {
+			debug("%s: Cannot attach bridge, ret=%d\n", __func__, ret);
+			return ret;
+		}
+	}
+
 	basic_init(&dc->cmd);
 	basic_init_timer(&dc->disp);
 	rgb_enable(&dc->com);
@@ -321,14 +334,6 @@ static int tegra_lcd_probe(struct udevice *dev)
 	pinmux_set_func(PMUX_PINGRP_GPU, PMUX_FUNC_PWM);
 	pinmux_tristate_disable(PMUX_PINGRP_GPU);
 #endif
-
-	if (priv->bridge) {
-		ret = video_bridge_attach(priv->bridge);
-		if (ret) {
-			debug("%s: Cannot attach bridge, ret=%d\n", __func__, ret);
-			return ret;
-		}
-	}
 
 	ret = panel_enable_backlight(priv->panel);
 	if (ret) {

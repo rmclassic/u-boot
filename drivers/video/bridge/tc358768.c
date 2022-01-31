@@ -22,6 +22,102 @@
 #define usleep_range(a, b) udelay((b))
 #define msleep(a) udelay(a * 1000)
 
+struct bridge_register_set {
+	uint16_t addr;
+	uint16_t data;
+};
+
+static const struct bridge_register_set display_table[] = {
+    /* Software Reset */
+	{0x0002, 0x0001}, // SYSctl, S/W Reset
+	{0x0000, 0x0005}, // Delay time
+	{0x0002, 0x0000}, // SYSctl, S/W Reset release
+
+	/* PLL, Clock Setting */
+	{0x0016, 0x309F}, // PLL Control Register 0 (PLL_PRD,PLL_FBD)
+	{0x0018, 0x0203}, // PLL_FRS,PLL_LBWS, PLL oscillation enable
+	{0x0000, 0x0005}, // Delay time
+	{0x0018, 0x0213}, // PLL_FRS,PLL_LBWS, PLL clock out enable
+
+	/* DPI Input Control */
+	{0x0006, 0x012C}, // FIFO Control Register
+
+	/* D-PHY Setting */
+	{0x0140, 0x0000}, // D-PHY Clock Lane enable
+	{0x0142, 0x0000},
+	{0x0144, 0x0000}, // D-PHY Data Lane0 enable
+	{0x0146, 0x0000},
+	{0x0148, 0x0000}, // D-PHY Data Lane1 enable
+	{0x014A, 0x0000},
+	{0x014C, 0x0000}, // D-PHY Data Lane2 enable
+	{0x014E, 0x0000},
+	{0x0150, 0x0000}, // D-PHY Data Lane3 enable
+	{0x0152, 0x0000},
+
+	{0x0100, 0x0203}, // D-PHY Clock Lane Control TX
+	{0x0102, 0x0000},
+	{0x0104, 0x0203}, // D-PHY Data Lane0 Control TX
+	{0x0106, 0x0000},
+	{0x0108, 0x0203}, // D-PHY Data Lane1 Control TX
+	{0x010A, 0x0000},
+	{0x010C, 0x0203}, // D-PHY Data Lane2 Control TX
+	{0x010E, 0x0000},
+	{0x0110, 0x0203}, // D-PHY Data Lane3 Control TX
+	{0x0112, 0x0000},
+
+	/* DSI-TX PPI Control */
+	{0x0210, 0x1964}, // LINEINITCNT
+	{0x0212, 0x0000},
+	{0x0214, 0x0005}, // LPTXTIMECNT
+	{0x0216, 0x0000},
+	{0x0218, 0x2801}, // TCLK_HEADERCNT
+	{0x021A, 0x0000},
+	{0x021C, 0x0000}, // TCLK_TRAILCNT
+	{0x021E, 0x0000},
+	{0x0220, 0x0C06}, // THS_HEADERCNT
+	{0x0222, 0x0000},
+	{0x0224, 0x4E20}, // TWAKEUPCNT
+	{0x0226, 0x0000},
+	{0x0228, 0x000B}, // TCLK_POSTCNT
+	{0x022A, 0x0000},
+	{0x022C, 0x0005}, // THS_TRAILCNT
+	{0x022E, 0x0000},
+	{0x0230, 0x0005}, // HSTXVREGCNT
+	{0x0232, 0x0000},
+	{0x0234, 0x001F}, // HSTXVREGEN enable
+	{0x0236, 0x0000},
+	{0x0238, 0x0001}, // DSI clock enable/disable during LP
+	{0x023A, 0x0000},
+	{0x023C, 0x0005}, // BTACNTRL1
+	{0x023E, 0x0005},
+	{0x0204, 0x0001}, // STARTCNTRL
+	{0x0206, 0x0000},
+
+	/* DSI-TX Timing Control */
+	{0x0620, 0x0001}, // Sync Pulse/Sync Event mode setting
+	{0x0622, 0x0020}, // V Control Register1
+	{0x0624, 0x001A}, // V Control Register2
+	{0x0626, 0x04B0}, // V Control Register3
+	{0x0628, 0x015E}, // H Control Register1
+	{0x062A, 0x00FA}, // H Control Register2
+	{0x062C, 0x1680}, // H Control Register3
+
+	{0x0518, 0x0001}, // DSI Start
+	{0x051A, 0x0000},
+
+	/* Set to HS mode */
+	{0x0500, 0x0086}, // DSI lane setting, DSI mode=HS
+	{0x0502, 0xA300}, // bit set
+	{0x0500, 0x8000}, // Switch to DSI mode
+	{0x0502, 0xC300},
+
+	/* Host: RGB(DPI) input start */
+	{0x0008, 0x0037}, // DSI-TX Format setting
+	{0x0050, 0x003E}, // DSI-TX Pixel Stream packet Data Type setting
+	{0x0032, 0x0001}, // HSYNC polarity
+	{0x0004, 0x0064}, // Configuration Control Register
+};
+
 struct tc358768_priv {
 	struct udevice *vddc;
 	struct udevice *vddmipi;
@@ -31,6 +127,54 @@ struct tc358768_priv {
 
 	struct gpio_desc reset;
 };
+
+static int tc358768_write_reg(struct udevice *dev, unsigned char addr,
+			      unsigned char data)
+{
+	struct dm_i2c_chip *chip = dev_get_parent_plat(dev);
+	unsigned char buf[4];
+	struct i2c_msg msg[1];
+	int ret = 0, err;
+
+	buf[0] = (addr >> 8);
+	buf[1] = (addr & 0xFF);
+	buf[2] = (data >> 8);
+	buf[3] = (data & 0xFF);
+
+	msg->addr = chip->chip_addr;
+	msg->flags = 0;
+	msg->len = ARRAY_SIZE(buf);
+	msg->buf = buf;
+
+	do {
+		err = dm_i2c_xfer(dev, msg, ARRAY_SIZE(msg));
+		if (err) {
+			debug("%s: write failed, err = %d, addr = %#x, data = %#x\n",
+				__func__, err, addr, data);
+			return err;
+		}
+		ret++;
+	} while (ret <= DISPLAY_MAX_RETRIES);
+
+	return 0;
+}
+
+static int tc358768_write_table(struct udevice *dev,
+				const struct bridge_register_set *regs, int nregs)
+{
+	int err, i;
+
+	for (i = 0; i < nregs; i++) {
+		if (!regs[i].addr)
+			mdelay(regs[i].data);
+
+		err = tc358768_write_reg(dev, regs[i].addr, regs[i].data);
+		if (err)
+			break;
+	}
+
+	return err;
+}
 
 static int tc358768_set_backlight(struct udevice *dev, int percent)
 {
@@ -76,15 +220,44 @@ static void tc358768_hw_enable(struct udevice *dev)
 
 static int tc358768_attach(struct udevice *dev)
 {
-//	struct dm_i2c_chip *chip = dev_get_parent_plat(dev);
-//	struct i2c_msg msg[2];
-//	unsigned char buf[4] = { 0, 0, 0, 0 };
-//	int ret;
+	struct dm_i2c_chip *chip = dev_get_parent_plat(dev);
+	struct i2c_msg msg[2];
+	unsigned char buf[4] = { 0, 0, 0, 0 };
+	int ret;
 
 	debug("%s: %s\n", __func__, dev->name);
 
 	/* Enable sequence */
 	tc358768_hw_enable(dev);
+
+	/* First msg */
+	msg[0].addr = chip->chip_addr;
+	msg[0].flags = 0;
+	msg[0].len = 2;
+	msg[0].buf = buf;
+
+	/* high byte goes out first */
+	buf[0] = 0;
+	buf[1] = 0;
+
+	msg[1].addr = chip->chip_addr;
+	msg[1].flags = 1;
+	msg[1].len = 2;
+	msg[1].buf = buf + 2;
+
+	ret = dm_i2c_xfer(dev, msg, 2);
+	if (ret) {
+		debug("%s: read failed\n", __func__);
+		return ret;
+	}
+
+	ret = tc358768_write_table(dev, display_table, ARRAY_SIZE(display_table));
+	if (ret) {
+		debug("%s: table write failed\n", __func__);
+		return ret;
+	}
+
+	mdelay(35);
 
 	return 0;
 }

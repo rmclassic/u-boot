@@ -14,7 +14,7 @@ config TRANSFORMER_SPI_BOOT
 	default n
 	help
 	  Tegra 3 based Transformers with Windows RT have core
-	  boot sequence (BCT, PT, EBT) on separate SPI FLASH
+	  boot sequence (BCT and UEFI) on separate SPI FLASH
 	  memory with 4MB size.
 
 config TRANSFORMER_TF700T_MIPI

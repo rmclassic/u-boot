@@ -93,25 +93,22 @@
 		default-brightness-level = <6>;
 	};
 
-	gpio-keyboard {
-		compatible = "gpio-keys-input";
+	gpio-keys {
+		compatible = "gpio-keys";
 
 		power {
 			label = "Power";
 			gpios = <&gpio TEGRA_GPIO(V, 0) GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_ENTER>;
 		};
 
 		volume-up {
-			label = "Volume Up";
+			label = "VolumeUp";
 			gpios = <&gpio TEGRA_GPIO(Q, 2) GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_UP>;
 		};
 
 		volume-down {
-			label = "Volume Down";
+			label = "VolumeDown";
 			gpios = <&gpio TEGRA_GPIO(Q, 3) GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_DOWN>;
 		};
 	};
 

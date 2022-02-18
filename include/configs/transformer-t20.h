@@ -13,28 +13,50 @@
 #include <linux/sizes.h>
 
 #include "tegra20-common.h"
-#include "transformer-common.h"
+
+/* High-level configuration options */
+#define CONFIG_TEGRA_BOARD_STRING	"ASUS Transformer"
+
+#define TRANSFORMER_FLASH_EBT \
+	"update_ebt=echo Reading U-Boot binary;" \
+		"if load mmc 1:1 ${kernel_addr_r} ${bootloader_file};" \
+		"then echo Writing U-Boot into EBT;" \
+			"mmc dev 0 1;" \
+			"mmc write ${kernel_addr_r} 0x0 0x1000;" \
+		"else echo Reading U-Boot failed; fi\0"
 
 #define BOARD_EXTRA_ENV_SETTINGS \
-	TRANSFORMER_T20_EMMC_LAYOUT \
-	TRANSFORMER_DEFAULT_FILESET \
-	TRANSFORMER_BOOTZ \
-	TRANSFORMER_BUTTON_CHECK \
-	TRANSFORMER_BOOTMENU
+	"kernel_file=vmlinuz\0" \
+	"ramdisk_file=uInitrd\0" \
+	"bootloader_file=u-boot-dtb-tegra.bin\0" \
+	"bootkernel=bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
+	"bootrdkernel=bootz ${kernel_addr_r} ${ramdisk_addr_r} ${fdt_addr_r}\0" \
+	TRANSFORMER_FLASH_EBT
+
+#define TRANSFORMER_LOAD_KERNEL \
+	"echo Loading Kernel;" \
+	"if load mmc ${bootdev}:1 ${kernel_addr_r} ${kernel_file};" \
+	"then echo Loading DTB;" \
+		"load mmc ${bootdev}:1 ${fdt_addr_r} ${fdtfile};" \
+		"setenv bootargs console=ttyS0,115200n8 root=/dev/mmcblk${bootdev}p2 rw gpt;" \
+		"echo Loading Initramfs;" \
+		"if load mmc ${bootdev}:1 ${ramdisk_addr_r} ${ramdisk_file};" \
+		"then echo Booting Kernel;" \
+			"run bootrdkernel;" \
+		"else echo Booting Kernel;" \
+			"run bootkernel; fi;"
 
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND \
-	"setenv gpio_vol_down 132;" \
-	"if run check_button;" \
-	"then bootmenu;" \
+	"if button VolumeDown;" \
+	"then echo Starting U-Boot update ...;" \
+		"run update_ebt;" \
 	"else echo Loading from uSD...;" \
 		"setenv bootdev 1;" \
-		"setenv rootpart 2;" \
 		TRANSFORMER_LOAD_KERNEL \
 		"else echo Loading from uSD failed!;" \
 			"echo Loading from eMMC...;" \
 			"setenv bootdev 0;" \
-			"setenv rootpart 7;" \
 			TRANSFORMER_LOAD_KERNEL \
 			"fi;" \
 		"fi;" \

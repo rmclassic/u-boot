@@ -558,25 +558,22 @@
 		};
 	};
 
-	gpio-keyboard {
-		compatible = "gpio-keys-input";
+	gpio-keys {
+		compatible = "gpio-keys";
 
 		power {
 			label = "Power";
 			gpios = <&gpio TEGRA_GPIO(V, 2) GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_ENTER>;
 		};
 
 		volume-up {
-			label = "Volume Up";
+			label = "VolumeUp";
 			gpios = <&gpio TEGRA_GPIO(Q, 5) GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_UP>;
 		};
 
 		volume-down {
-			label = "Volume Down";
+			label = "VolumeDown";
 			gpios = <&gpio TEGRA_GPIO(Q, 4) GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_DOWN>;
 		};
 	};
 

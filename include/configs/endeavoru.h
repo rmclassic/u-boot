@@ -17,43 +17,28 @@
 /* High-level configuration options */
 #define CONFIG_TEGRA_BOARD_STRING	"HTC One X"
 
-#define ENDEAVORU_BOOTMENU \
-	"bootmenu_0=boot with script= \0" \
-	"bootmenu_1=boot LNX= \0" \
-	"bootmenu_2=boot SOS= \0" \
-	"bootmenu_3=fastboot=echo Starting Fastboot protocol ...; fastboot usb 0\0" \
-	"bootmenu_4=reboot=reset\0" \
-	"bootmenu_5=power off= \0" \
-	"bootmenu_6=update bootloader= \0" \
-	"bootmenu_7=eMMC info=mmc part\0" \
-	"bootmenu_delay=-1\0"
-
 #define BOARD_EXTRA_ENV_SETTINGS \
 	"kernel_file=vmlinuz\0" \
 	"ramdisk_file=uInitrd\0" \
-	"bootloader_file=u-boot-dtb-tegra.bin\0" \
-	"check_button=gpio input 131; test $? -eq 0;\0" \
 	"bootkernel=bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
-	"bootrdkernel=bootz ${kernel_addr_r} ${ramdisk_addr_r} ${fdt_addr_r}\0" \
-	ENDEAVORU_BOOTMENU
+	"bootrdkernel=bootz ${kernel_addr_r} ${ramdisk_addr_r} ${fdt_addr_r}\0"
 
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND \
-	"if run check_button;" \
-	"then bootmenu;" \
-	"else echo Loading from eMMC...;" \
-		"setenv bootargs console=ttyS0,115200n8 root=/dev/mmcblk0p15 rw gpt;" \
-		"echo Loading Kernel;" \
-		"load mmc 0:14 ${kernel_addr_r} ${kernel_file};" \
-		"echo Loading DTB;" \
-		"load mmc 0:14 ${fdt_addr_r} ${fdtfile};" \
-		"echo Loading Initramfs;" \
-		"if load mmc 0:14 ${ramdisk_addr_r} ${ramdisk_file};" \
-		"then echo Booting Kernel;" \
-			"run bootrdkernel;" \
-		"else echo Booting Kernel;" \
-			"run bootkernel; fi;" \
-	"fi;"
+	"echo Loading from eMMC...;" \
+	"setenv bootargs console=ttyS0,115200n8 root=/dev/mmcblk0p15 rw gpt;" \
+	"echo Loading Kernel;" \
+	"load mmc 0:14 ${kernel_addr_r} ${kernel_file};" \
+	"echo Loading DTB;" \
+	"load mmc 0:14 ${fdt_addr_r} ${fdtfile};" \
+	"echo Loading Initramfs;" \
+	"if load mmc 0:14 ${ramdisk_addr_r} ${ramdisk_file};" \
+	"then echo Booting Kernel;" \
+		"run bootrdkernel;" \
+	"else echo Booting Kernel;" \
+		"run bootkernel; fi;" \
+
+#define CONFIG_PRAM 4096	/* 2MB + 2MB from end is trustzone */
 
 /* Board-specific serial config */
 #define CONFIG_TEGRA_ENABLE_UARTE

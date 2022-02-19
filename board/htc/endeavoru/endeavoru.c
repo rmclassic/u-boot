@@ -44,6 +44,13 @@ void pinmux_init(void)
 //	pinmux_config_drvgrp_table(cardhu_padctrl, ARRAY_SIZE(cardhu_padctrl));
 }
 
+void gpio_early_init(void)
+{
+	/* Switch UART-E on */
+	gpio_request(TEGRA_GPIO(Z, 0), "UART_E_SWITCH");
+	gpio_direction_output(TEGRA_GPIO(Z, 0), 1);
+}
+
 #ifdef CONFIG_MMC_SDHCI_TEGRA
 /*
  * Routine: pin_mux_mmc

@@ -16,6 +16,7 @@
 #include <asm/arch/gp_padctrl.h>
 #include <asm/arch/gpio.h>
 #include <asm/gpio.h>
+#include <asm/io.h>
 #include <linux/delay.h>
 #include "pinmux-config-transformer.h"
 #include <i2c.h>
@@ -43,40 +44,33 @@
 #define DEVCTRL_DEV_OFF_MASK	0x01
 #define DEVCTRL_DEV_ON_MASK	0x04
 
+#define FUSE_PRIVATE_KEY0	0x7000F9A4
+#define FUSE_PRIVATE_KEY1	0x7000F9A8
+#define FUSE_PRIVATE_KEY2	0x7000F9AC
+#define FUSE_PRIVATE_KEY3	0x7000F9B0
+#define FUSE_PRIVATE_KEY4	0x7000F9B4
+
 #ifdef CONFIG_CMD_POWEROFF
 int do_poweroff(struct cmd_tbl *cmdtp,
 		       int flag, int argc, char *const argv[])
 {
-	struct udevice *dev;
-	uchar data_buffer[1];
-	int ret;
+	u32 key;
 
-	ret = i2c_get_chip_for_busnum(0, PMU_I2C_ADDRESS, 1, &dev);
-	if (ret) {
-		debug("%s: Cannot find PMIC I2C chip\n", __func__);
-		return 0;
-	}
+	key = readl(FUSE_PRIVATE_KEY0);
+	printf("Fuse private key 0 is %x\n", key);
 
-	ret = dm_i2c_read(dev, TPS65911_DEVCTRL, data_buffer, 1);
-	if (ret)
-		return ret;
+	key = readl(FUSE_PRIVATE_KEY1);
+	printf("Fuse private key 1 is %x\n", key);
 
-	data_buffer[0] |= DEVCTRL_PWR_OFF_MASK;
+	key = readl(FUSE_PRIVATE_KEY2);
+	printf("Fuse private key 2 is %x\n", key);
 
-	ret = dm_i2c_write(dev, TPS65911_DEVCTRL, data_buffer, 1);
-	if (ret)
-		return ret;
+	key = readl(FUSE_PRIVATE_KEY3);
+	printf("Fuse private key 3 is %x\n", key);
 
-	data_buffer[0] |= DEVCTRL_DEV_OFF_MASK;
-	data_buffer[0] &= ~DEVCTRL_DEV_ON_MASK;
+	key = readl(FUSE_PRIVATE_KEY4);
+	printf("Fuse private key 4 is %x\n", key);
 
-	ret = dm_i2c_write(dev, TPS65911_DEVCTRL, data_buffer, 1);
-	if (ret)
-		return ret;
-
-	// wait some time and then print error
-	mdelay(5000);
-	printf("Failed to power off!!!\n");
 	return 1;
 }
 #endif

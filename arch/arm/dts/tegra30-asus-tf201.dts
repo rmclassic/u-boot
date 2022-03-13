@@ -156,6 +156,8 @@
 			regulator-name = "vdd_fuse";
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
+			regulator-always-on;
+			regulator-boot-on;
 			gpio = <&gpio TEGRA_GPIO(C, 1) GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 		};

@@ -44,6 +44,10 @@
 #define DEVCTRL_DEV_OFF_MASK	0x01
 #define DEVCTRL_DEV_ON_MASK	0x04
 
+#define TEGRA_CLK_RESET_BASE	0x60006000
+#define TEGRA_FUSE_CLK_ENB	0x14
+#define TEGRA_FUSE_CLK_PREP	0x48
+
 #define FUSE_PRIVATE_KEY0	0x7000F9A4
 #define FUSE_PRIVATE_KEY1	0x7000F9A8
 #define FUSE_PRIVATE_KEY2	0x7000F9AC
@@ -55,6 +59,18 @@ int do_poweroff(struct cmd_tbl *cmdtp,
 		       int flag, int argc, char *const argv[])
 {
 	u32 key;
+
+	key = readl_relaxed(TEGRA_CLK_RESET_BASE + TEGRA_FUSE_CLK_PREP);
+	key |= 1 << 28;
+	writel(key, TEGRA_CLK_RESET_BASE + TEGRA_FUSE_CLK_PREP);
+
+	/*
+	 * Enable FUSE clock. This needs to be hardcoded because the clock
+	 * subsystem is not active during early boot.
+	 */
+	key = readl(TEGRA_CLK_RESET_BASE + TEGRA_FUSE_CLK_ENB);
+	key |= 1 << 7;
+	writel(key, TEGRA_CLK_RESET_BASE + TEGRA_FUSE_CLK_ENB);
 
 	key = readl(FUSE_PRIVATE_KEY0);
 	printf("Fuse private key 0 is %x\n", key);

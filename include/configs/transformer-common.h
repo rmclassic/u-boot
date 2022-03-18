@@ -66,6 +66,30 @@
 			"bootm ${kernel_addr_r};" \
 		"else echo Reading LNX failed; fi\0"
 
+#define TRANSFORMER_BRICKSAFE_HOOK \
+	"bricksafe_hook=echo Loading bricksafe.img;" \
+		"if load mmc 1:1 0x81000000 bricksafe.img;" \
+		"then echo Restoring bricksafe.img;" \
+			"mmc dev 0 1;" \
+			"mmc write 0x81000000 0 0x1000;" \
+			"mmc dev 0 2;" \
+			"mmc write 0x81200000 0 0x1000;" \
+			"mmc dev;" \
+			"mmc write 0x81400000 0 0x3C00;" \
+			"echo Restoration of bricksafe.img completed;" \
+			"echo Rebooting...;" \
+			"reset;" \
+		"else echo Reading bricksafe.img;" \
+			"mmc dev 0 1;" \
+			"mmc read 0x81000000 0 0x1000;" \
+			"mmc dev 0 2;" \
+			"mmc read 0x81200000 0 0x1000;" \
+			"mmc dev;" \
+			"mmc read 0x81400000 0 0x3C00;" \
+			"if fatwrite mmc 1:1 0x81000000 bricksafe.img 0xB80000;" \
+			"then echo bricksafe.img dumped successfully;" \
+			"else bricksafe.img dump FAILED! ABORTING...; fi; fi\0"
+
 #define TRANSFORMER_FLASH_UBOOT \
 	"flash_uboot=echo Reading U-Boot binary;" \
 		"if load mmc 1:1 ${kernel_addr_r} ${bootloader_file};" \
@@ -105,6 +129,7 @@
 	TRANSFORMER_BOOT_SCRIPT \
 	TRANSFORMER_BOOT_SOS \
 	TRANSFORMER_BOOT_LNX \
+	TRANSFORMER_BRICKSAFE_HOOK \
 	TRANSFORMER_FLASH_UBOOT \
 	TRANSFORMER_FLASH_SPI \
 	TRANSFORMER_FASTBOOT_ALIAS \
@@ -112,9 +137,10 @@
 	"bootmenu_1=boot LNX=run boot_lnx\0" \
 	"bootmenu_2=boot SOS=run boot_sos\0" \
 	"bootmenu_3=fastboot=echo Starting Fastboot protocol ...; fastboot usb 0\0" \
-	"bootmenu_4=reboot RCM=enterrcm\0" \
-	"bootmenu_5=reboot=reset\0" \
-	"bootmenu_6=power off=poweroff\0" \
+	"bootmenu_4=bricksafe=run bricksafe_hook\0" \
+	"bootmenu_5=reboot RCM=enterrcm\0" \
+	"bootmenu_6=reboot=reset\0" \
+	"bootmenu_7=power off=poweroff\0" \
 	"bootmenu_delay=-1\0"
 
 #define TRANSFORMER_BUTTON_CHECK \

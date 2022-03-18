@@ -69,7 +69,6 @@
 					regulator-name = "vdd_usd";
 					regulator-min-microvolt = <3100000>;
 					regulator-max-microvolt = <3100000>;
-					regulator-always-on;
 				};
 
 				/* uSD slot VDDIO */

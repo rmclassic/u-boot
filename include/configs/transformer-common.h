@@ -112,8 +112,9 @@
 	"bootmenu_1=boot LNX=run boot_lnx\0" \
 	"bootmenu_2=boot SOS=run boot_sos\0" \
 	"bootmenu_3=fastboot=echo Starting Fastboot protocol ...; fastboot usb 0\0" \
-	"bootmenu_4=reboot=reset\0" \
-	"bootmenu_5=power off=poweroff\0" \
+	"bootmenu_4=reboot RCM=enterrcm\0" \
+	"bootmenu_5=reboot=reset\0" \
+	"bootmenu_6=power off=poweroff\0" \
 	"bootmenu_delay=-1\0"
 
 #define TRANSFORMER_BUTTON_CHECK \

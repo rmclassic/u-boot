@@ -68,4 +68,8 @@
 #include "tegra-common-post.h"
 #include "tegra-common-usb-gadget.h"
 
+/* Reserve top 2M for secure RAM */
+#define CONFIG_ARMV7_SECURE_BASE		0xbfe00000
+#define CONFIG_ARMV7_SECURE_RESERVE_SIZE	0x00200000
+
 #endif /* __CONFIG_H */

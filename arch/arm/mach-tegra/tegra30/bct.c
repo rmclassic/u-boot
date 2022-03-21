@@ -16,7 +16,8 @@ int bct_update_bl(u8 *bct_image, u32 bct_size, u8 *bl, u32 bl_size, u8* sbk)
   }
 
   nvboot_config_table boot_tbl = {0};
-  if (0 != if_bct_is_t30_get_soc_config(bct_image, &boot_tbl))
+  nvboot_config_table *boot_tbl_ptr = &boot_tbl;
+  if (0 != if_bct_is_t30_get_soc_config(bct_image, &boot_tbl_ptr))
   {
     return -1;
   }
@@ -24,7 +25,9 @@ int bct_update_bl(u8 *bct_image, u32 bct_size, u8 *bl, u32 bl_size, u8* sbk)
   sign_data_block(bl, bl_size, bl_hash, sbk);
 
   memcpy((u8*)&boot_tbl.bootloader[0].crypto_hash, bl_hash, NVBOOT_CMAC_AES_HASH_LENGTH * 4);
-  boot_tbl.bootloader[0].entry_point = 0x82000000;
+  boot_tbl.bootloader[0].entry_point = 0x80108000;
+  boot_tbl.bootloader[0].load_addr = 0x80108000;
+  boot_tbl.bootloader[0].length = bl_size;
 
   encrypt_bct((u8*)&boot_tbl, bct_size, sbk, bct_image);
   return BCT_ERR_SUCCESS;

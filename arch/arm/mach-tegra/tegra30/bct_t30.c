@@ -7,11 +7,11 @@
 #define BOOTDATA_VERSION_T30		NVBOOT_BOOTDATA_VERSION(0x3, 0x1)
 #define BCT_LENGTH 6128
 
-int if_bct_is_t30_get_soc_config(u8 *bct_raw, nvboot_config_table *bct)
+int if_bct_is_t30_get_soc_config(u8 *bct_raw, nvboot_config_table **bct)
 {
-	memcpy(bct, bct_raw, BCT_LENGTH);
+	*bct = (nvboot_config_table*)bct_raw;
 
-	if (bct->boot_data_version != BOOTDATA_VERSION_T30)
+	if ((*bct)->boot_data_version != BOOTDATA_VERSION_T30)
 		return 1;
 
 	return 0;

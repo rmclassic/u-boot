@@ -2,13 +2,13 @@
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
  * (C) Copyright 2010 - 2011 NVIDIA Corporation <www.nvidia.com>
- */
-
-#include <common.h>
-#include <log.h>
-#include <linux/errno.h>
+*/
+typedef unsigned char u8;
+typedef unsigned int u32;
+#include <stddef.h>
 #include "crypto.h"
 #include "uboot_aes.h"
+
 
 static u8 zero_key[16];
 
@@ -83,8 +83,6 @@ static void sign_object(u8 *key, u8 *key_schedule, u8 *src, u8 *dst,
 		aes_encrypt(AES128_KEY_LENGTH, tmp_data,
 			    key_schedule, dst);
 
-		debug("sign_obj: block %d of %d\n", i, num_aes_blocks);
-
 		/* Update pointers for next loop. */
 		cbc_chain_data = dst;
 		src += AES128_KEY_LENGTH;
@@ -107,30 +105,27 @@ static int encrypt_and_sign(u8 *key, enum security_op oper, u8 *src,
 	u8 key_schedule[AES128_EXPAND_KEY_LENGTH];
 	u8 iv[AES128_KEY_LENGTH] = {0};
 
-	debug("encrypt_and_sign: length = %d\n", length);
-
 	/*
 	 * The only need for a key is for signing/checksum purposes, so
 	 * if not encrypting, expand a key of 0s.
 	 */
-	aes_expand_key(key,
-		       AES128_KEY_LENGTH, key_schedule);
+	aes_expand_key(key, AES128_KEY_LENGTH, key_schedule);
 
 	num_aes_blocks = (length + AES128_KEY_LENGTH - 1) / AES128_KEY_LENGTH;
 
 	if (oper & SECURITY_ENCRYPT) {
 		/* Perform this in place, resulting in src being encrypted. */
-		debug("encrypt_and_sign: begin encryption\n");
+
 		aes_cbc_encrypt_blocks(AES128_KEY_LENGTH, key_schedule, iv, src,
 				       src, num_aes_blocks);
-		debug("encrypt_and_sign: end encryption\n");
+
 	}
 
 	if (oper & SECURITY_SIGN) {
 		/* encrypt the data, overwriting the result in signature. */
-		debug("encrypt_and_sign: begin signing\n");
+
 		sign_object(key, key_schedule, src, sig_dst, num_aes_blocks);
-		debug("encrypt_and_sign: end signing\n");
+
 	}
 
 	return 0;
@@ -140,4 +135,10 @@ int sign_data_block(u8 *source, unsigned length, u8 *signature, u8 *key)
 {
 	return encrypt_and_sign(key, SECURITY_SIGN, source,
 				length, signature);
+}
+
+int encrypt_data_block(u8 *source, unsigned length, u8 *key)
+{
+	return encrypt_and_sign(key, SECURITY_ENCRYPT, source,
+				length, NULL);
 }

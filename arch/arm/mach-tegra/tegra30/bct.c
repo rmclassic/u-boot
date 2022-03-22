@@ -30,6 +30,7 @@ int bct_update_bl(u8 *bct_image, u32 bct_size, u8 *bl, u32 bl_size, u8* sbk)
   boot_tbl.bootloader[0].length = bl_size;
 
   encrypt_bct((u8*)&boot_tbl, bct_size, sbk, bct_image);
+  encrypt_data_block(bl, bl_size, sbk);
   return BCT_ERR_SUCCESS;
 }
 
